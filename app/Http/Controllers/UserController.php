@@ -7,9 +7,6 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         return User::with('roles')->get();
@@ -17,39 +14,34 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return $user;
+        return $user->load('roles');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, User $user)
     {
-        //
+        $validated = $request->validate([
+            'name'    => 'sometimes|required|string',
+            'email'   => 'sometimes|required|email|unique:users,email,' . $user->id,
+            'roles'   => 'sometimes|array',
+            'roles.*' => 'integer|exists:roles,id',
+        ]);
+
+        if (isset($validated['roles'])) {
+            $user->roles()->sync($validated['roles']);
+            unset($validated['roles']);
+        }
+
+        if (!empty($validated)) {
+            $user->update($validated);
+        }
+
+        return $user->load('roles');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(User $user)
     {
-        //
+        $user->delete();
+
+        return response()->noContent();
     }
 }

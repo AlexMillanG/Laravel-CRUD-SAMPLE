@@ -19,8 +19,14 @@ class User extends Authenticatable
     use HasApiTokens;
 
 
-    public function products(){
+    public function products()
+    {
         return $this->hasMany(Product::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
     }
 
     public function roles()
